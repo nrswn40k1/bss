@@ -10,7 +10,7 @@ from tqdm import tqdm
 class ICA:
     
     def __init__(self):
-        self.max_iter = 200
+        self.max_iter = 50
         self.eta = 1.0 * 10 ** (-4) # is step size
 
     def ica(self, x):
@@ -74,7 +74,7 @@ class FDICA(ICA):
 
         y = self.reconstruct(f,X)
 
-        x_prd = istft(y, self.sample_freq, self.win, self.nperseg, self.noverlap)
+        _,x_prd = istft(y[:,:,:,0], self.sample_freq, self.win, self.nperseg, self.noverlap)
         
         return x_prd
 
@@ -88,8 +88,8 @@ class FDICA(ICA):
         v is 4 dementional array whose 1st axis is the source index, 2nd axis is the microphone index, 4th axis is frequency index.
         '''
         
-        epsilon_v = np.zeros_like(X, dtype=np.complex64)
-        print(type(X))
+        epsilon_v = np.zeros(X.shape)
+
         v = np.zeros((X.shape[0], X.shape[1], X.shape[2], X.shape[0]), dtype=np.complex64)
 
         for i in tqdm(range(len(f))): # i refers to the freq.
@@ -102,13 +102,13 @@ class FDICA(ICA):
 
         odr_sim = np.argsort(-sim, kind='heapsort')
         
-        y = np.zeros_like(v)
+        y = np.zeros_like(v, dtype=np.complex64)
         epsilon_y = np.zeros_like(epsilon_v)
 
         n = epsilon_v.shape[0]
 
-        y[0,:,:,:] = v[odr_sim[0],:,:,:]
-        epsilon_y[0,:,:] = epsilon_v[odr_sim[0],:,:]
+        y[:,0,:,:] = v[:,odr_sim[0],:,:]
+        epsilon_y[:,0,:] = epsilon_v[:,odr_sim[0],:]
 
         for k, w_k in enumerate(tqdm(odr_sim)):
             if(k==0): 
@@ -161,7 +161,7 @@ class FDICA(ICA):
         @output(epsilon_v): real value.
         '''
         n, TS, _  = v.shape
-        epsilon_v = np.zeros((n, TS), dtype=np.complex64)
+        epsilon_v = np.zeros((n, TS))
         sum_v = np.sum(np.abs(v), axis=2)
         
         for ts in range(TS):
