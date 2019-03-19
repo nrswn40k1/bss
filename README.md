@@ -2,24 +2,26 @@
 ## 工学博覧会 : 音源分離チーム
 
 ### FDICA
+-------------------------------
+FDICA is frequency domain independent component analysis. 
 
-#### Requirements
-libraries
+#### Requirements (library dependency)
+You need Python 3.4 or later to run FDICA.
 - munkres
 - tqdm
 - numpy
 - scipy
 
-#### Usage
-First, change the current directory to src.
+#### Quick start
+First, install libraries and change the current directory to src.
 ```
 pip install tqdm
 pip install munkres
 cd src
 ```
-Second, for instance, 
+Second, for instance,
 
-```
+```python
 import numpy as np
 import scipy.io.wavfile as wf
 from FDICA import ICA, FDICA
@@ -32,7 +34,6 @@ if rate1 != rate2 or rate2 != rate3:
     raise ValueError('Sampling_rate_Error')
 
 data = [data1.astype(float), data2.astype(float), data3.astype(float)]
-
 
 y = FDICA(data, sample_freq=rate1).fdica()
 
