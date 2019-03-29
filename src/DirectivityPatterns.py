@@ -82,7 +82,7 @@ class FDICA(ICA):
 
     def reconstruct(self,f,X,n):
 
-        W = np.zeros((self.x.shape,self.x.shape,len(f)),dtype=complex64)
+        W = np.zeros((n,n,len(f)),dtype=complex64)
         Y = np.zeros_like(X)
 
         #全ての周波数ビンiについて
