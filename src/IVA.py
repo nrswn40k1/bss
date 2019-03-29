@@ -5,9 +5,13 @@ from scipy.signal import stft, istft
 
 # suppose that the number of sources and microphones are equal.
 
+# M : # of channels whose index is m
+# K : # of frequency bins whose index is k
+# T : # of time frames whose index is t
+
 class IVA:
 
-    def __init__(self, x, sample_freq, win='boxcar', nperseg=256, noverlap=128):
+    def __init__(self, x, sample_freq, win='hunning', nperseg=256, noverlap=128):
         '''
         @param(d): is a vector which represents the distance from a reference point.
         @param(win):str, desired window to use.
@@ -63,13 +67,13 @@ class IVA:
 
     def __alpha(self, y):
         # y is (channel index, freq index, time segment index)
-        p, r, c = y.shape
-        alpha = np.zeros((r, p, p), dtype=np.complex64)
-        for t in range(c):
+        M, K, T = y.shape
+        alpha = np.zeros((K, M, M), dtype=np.complex64)
+        for t in range(T):
             fai = self.__fai_func(y[:,:,t])
-            for k in range(r):
+            for k in range(K):
                 alpha[k,:,:] += np.dot(np.matrix(fai[:,k]).T, np.matrix(y[:,k,t].conjugate()))
-        alpha = alpha / c
+        alpha = alpha / T
         return np.array(alpha)
 
     def __adjust(self, w):
@@ -77,21 +81,21 @@ class IVA:
         return w
 
     def __optimize(self, X):
-        p, r, c = X.shape
-        w = np.zeros((r, p, p), dtype=np.complex64)
-        y = np.empty((p, r, c), dtype=np.complex64)
-        for k in range(r):
-            w[k,:,:] += np.eye(p)
+        M, K, T = X.shape
+        w = np.zeros((K, M, M), dtype=np.complex64)
+        y = np.empty((M, K, T), dtype=np.complex64)
+        for k in range(K):
+            w[k,:,:] += np.eye(M)
 
         for i in range(self.max_iter):
-            for k in range(r):
+            for k in range(K):
                 y[:,k,:] = np.dot(w[k,:,:], X[:,k,:])
             alpha = self.__alpha(y)
-            for k in range(r):
-                w[k,:,:] += self.eta * np.dot((np.eye(p) - alpha[k,:,:]), w[k,:,:])
+            for k in range(K):
+                w[k,:,:] += self.eta * np.dot((np.eye(M) - alpha[k,:,:]), w[k,:,:])
             print("{}/{}\n".format(i, self.max_iter))
 
-        for k in range(r):
+        for k in range(K):
             w[k,:,:] = self.__adjust(w[k,:,:])
 
         return w
