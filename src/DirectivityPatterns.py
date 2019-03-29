@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 import numpy as np
 from numpy.linalg import inv
 from scipy.optimize import minimize
@@ -26,12 +27,16 @@ class ICA:
 
     def __optimize(self, x):
         r,c = x.shape
+        print(x.shape)
+        print()
         w = np.zeros((r,r), dtype=np.complex64)
+        print()
         w += np.diag(np.ones(r))
         
         
         for _ in range(self.max_iter):
             y = np.dot(w, x)
+
             alpha = np.zeros((r,r), dtype=np.complex64)
 
             for i in range(c):
@@ -82,7 +87,7 @@ class FDICA(ICA):
 
     def reconstruct(self,f,X,n):
 
-        W = np.zeros((n,n,len(f)),dtype=complex64)
+        W = np.zeros((n,n,len(f)),dtype=np.complex64)
         Y = np.zeros_like(X)
 
         #全ての周波数ビンiについて
