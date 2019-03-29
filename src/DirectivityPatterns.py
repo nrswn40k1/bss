@@ -102,8 +102,8 @@ class FDICA(ICA):
             k = np.array(3)
             for j in range(3):
                 theta1 = minimize(F[j],x0=-np.pi/3,bounds=np.array(-np.pi/2,-np.pi/6),method='BFGS')
-                theta2 = minimize(F[j],x0=0,bounds=np.array(-np.pi/6,np.pi/6))
-                theta3 = minimize(F[j],x0=np.pi/3,bounds=np.array(np.pi/6,np.pi/2))
+                theta2 = minimize(F[j],x0=0,bounds=np.array(-np.pi/6,np.pi/6),method="BFGS")
+                theta3 = minimize(F[j],x0=np.pi/3,bounds=np.array(np.pi/6,np.pi/2),method="BFGS")
 
                 k[j] = np.argmax(np.array([theta1,theta2,theta3]))
             
