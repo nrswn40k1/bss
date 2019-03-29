@@ -94,7 +94,7 @@ class FDICA(ICA):
                 F = np.zeros(n)
                 for l in range(n):
                     for k in range(n):
-                        F[l] += W[l,k]*np.exp(1j*2*np.pi*f[i]*(k-1)*np.sin(theta)/340)
+                        F[l] += W[l,k,i]*np.exp(1j*2*np.pi*f[i]*(k-1)*np.sin(theta)/340)
                 return F
             
             #Fの最適化によりnull directionを探す
