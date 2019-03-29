@@ -11,14 +11,13 @@ from scipy.signal import stft, istft
 
 class IVA:
 
-    def __init__(self, x, sample_freq, win='hunning', nperseg=256, noverlap=128):
+    def __init__(self, x, sample_freq, win='hanning', nperseg=256, noverlap=128):
         '''
-        @param(d): is a vector which represents the distance from a reference point.
         @param(win):str, desired window to use.
         @param(nperseg): length of each segment.
         @param(noverlap): number of points to overlap between segments.
         '''
-        self.max_iter = 50
+        self.max_iter = 30
         self.eta = 1.0 * 10 ** (-4)  # is step size
         self.m_shit = 5
         self.x = np.array(x)
@@ -30,13 +29,11 @@ class IVA:
     def iva(self):
         '''
         X is complex64-type-3-dementional array whose x axis is microphie , y axis is the segment times, z is frequency respectively.
-        @output(x_prd): 3 dimensional array whose 1st axis is the source index, 2nd is the microphon index, third is data of them.
+        @output(x_prd): 2 dimensional array whose 1st axis is the source index, 2nd is data of them.
         '''
 
         f, _, X = stft(self.x, self.sample_freq, self.win, self.nperseg, self.noverlap)
         # X is (channel index, freq index, time segment idex)
-
-        print(X.shape)
 
         y = self.reconstruct(X)
 
