@@ -105,6 +105,8 @@ class FDICA(ICA):
                 theta2 = minimize(F[j],x0=0,bounds=np.array(-np.pi/6,np.pi/6),method="BFGS")
                 theta3 = minimize(F[j],x0=np.pi/3,bounds=np.array(np.pi/6,np.pi/2),method="BFGS")
 
+                #theta1,theta2,theta3のうち、二つは０に近いと考えられる。
+                #よってFが最大の方向のインデックスを取れば、音源の方向がわかる。
                 k[j] = np.argmax(np.array([theta1,theta2,theta3]))
             
             #Wの0行目を-60度方向の音、1行目を0度方向、2行目を60度方向に入れ替え
@@ -122,6 +124,7 @@ class FDICA(ICA):
                 W[2,:,i],W[1,:,i] = W[1,:,i],W[2,:,i]
 
             #規格化
+            #Fを最小化するところで規格化してしまっているが、音源方向はABFと同じ働きによる音の抑制は少ないと考えられるのでこのまま規格化している
             W[0,:,i] = W[0,:,i]/F[theta1]
             W[1,:,i] = W[1,:,i]/F[theta2]
             W[2,:,i] = W[2,:,i]/F[theta3]
