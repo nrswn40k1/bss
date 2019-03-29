@@ -68,7 +68,7 @@ class IVA:
         for t in range(c):
             fai = self.__fai_func(y[:,:,t])
             for k in range(r):
-                alpha[k,:,:] += np.dot(np.matrix(fai[:,k]).T, np.matrix(y[:,k,t]))
+                alpha[k,:,:] += np.dot(np.matrix(fai[:,k]).T, np.matrix(y[:,k,t].conjugate()))
         alpha = alpha / c
         return np.array(alpha)
 
@@ -88,7 +88,7 @@ class IVA:
                 y[:,k,:] = np.dot(w[k,:,:], X[:,k,:])
             alpha = self.__alpha(y)
             for k in range(r):
-                w[k,:,:] += self.eta * np.dot((np.eye(p)/2 - alpha[k,:,:]), w[k,:,:])
+                w[k,:,:] += self.eta * np.dot((np.eye(p) - alpha[k,:,:]), w[k,:,:])
             print("{}/{}\n".format(i, self.max_iter))
 
         for k in range(r):
