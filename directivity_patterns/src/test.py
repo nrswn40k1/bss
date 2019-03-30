@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.io.wavfile as wf
-from FDICA import ICA, FDICA
+from DirectivityPatterns import ICA, FDICA
 
 #prepare data
 rate1, data1 = wf.read('./fanfare.wav')
