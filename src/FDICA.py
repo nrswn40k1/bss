@@ -63,7 +63,7 @@ class ICA:
         '''
         You can change the __fai_func_xxxxx from 3 different function above.
         '''
-        return  np.dot(self.__fai_func_tanh(y), y.T.conjugate())    
+        return  np.dot(self.__fai_func_sign(y), y.T.conjugate())    
 
     def __optimize(self, x):
         r,c = x.shape
@@ -109,12 +109,16 @@ class FDICA(ICA):
         X is complex64-type-3-dementional array whose x axis is microphie , y axis is the segment times, z is frequency respectively.
         @output(x_prd): 3 dimensional array whose 1st axis is the source index, 2nd is the microphon index, third is data of them.
         '''
-
+        
+        print('Now... short time discrete fourier transformation')
+        
         f,_,X = stft(self.x, self.sample_freq, self.win, self.nperseg, self.noverlap)
         # X is (channel index, freq index, time segment idex)
 
         y = self.reconstruct(f,X)
 
+        print('Now... inverted short time discrete fourier transformation')
+        
         _,x_prd = istft(y[:,:,:,0], self.sample_freq, self.win, self.nperseg, self.noverlap)
         
         return x_prd
@@ -132,6 +136,8 @@ class FDICA(ICA):
         epsilon_v = np.zeros(X.shape)
 
         v = np.zeros((X.shape[0], X.shape[1], X.shape[2], X.shape[0]), dtype=np.complex64)
+
+        print('Now... separation in each {} frequency.'.format(len(f)))
 
         for i in tqdm(range(len(f))): # i refers to the freq.
             U,B = self.ica(X[:,i,:])
@@ -151,6 +157,8 @@ class FDICA(ICA):
         y[:,0,:,:] = v[:,odr_sim[0],:,:]
         epsilon_y[:,0,:] = epsilon_v[:,odr_sim[0],:]
 
+        print('Now... permutation in each {} frequency.'.format(odr_sim))
+        
         for k, w_k in enumerate(tqdm(odr_sim)):
             if(k==0): 
                 continue
