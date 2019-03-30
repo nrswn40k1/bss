@@ -15,6 +15,8 @@ You need Python 3.4 or later to run FDICA.
 #### Quick start
 First, install libraries and change the current directory to src.
 ```
+pip install numpy
+pip install scipy
 pip install tqdm
 pip install munkres
 cd src
@@ -44,7 +46,10 @@ wf.write('./music2.wav', rate2, y[1])
 wf.write('./music3.wav', rate3, y[2])
 ```
 
+#### Usage
+You can choose three different fai function.
+
 #### Reference
 - Evaluation of blind signal separation method using directivity pattern under reverberant condition
-- An Approach to Blind Source Separation. Based on Temporal Structure of Speech Signals. 
+- An Approach to Blind Source Separation Based on Temporal Structure of Speech Signals. 
 
