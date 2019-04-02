@@ -55,6 +55,7 @@ You can choose three different fai function.
 
 
 ### IVA
+-------------------------------
 IVA is independent vector analysis.
 
 #### Requirements (library dependency)
