@@ -1,4 +1,5 @@
 import numpy as np
+from tqdm import tqdm
 from numpy.linalg import inv
 from scipy.signal import stft, istft
 
@@ -17,7 +18,7 @@ class IVA:
         @param(nperseg): length of each segment.
         @param(noverlap): number of points to overlap between segments.
         '''
-        self.max_iter = 30
+        self.max_iter = 200
         self.eta = 1.0 * 10 ** (-4)  # is step size
         self.m_shit = 5
         self.x = np.array(x)
@@ -84,13 +85,12 @@ class IVA:
         for k in range(K):
             w[k,:,:] += np.eye(M)
 
-        for i in range(self.max_iter):
+        for _ in tqdm(range(self.max_iter)):
             for k in range(K):
                 y[:,k,:] = np.dot(w[k,:,:], X[:,k,:])
             alpha = self.__alpha(y)
             for k in range(K):
                 w[k,:,:] += self.eta * np.dot((np.eye(M) - alpha[k,:,:]), w[k,:,:])
-            print("{}/{}\n".format(i, self.max_iter))
 
         for k in range(K):
             w[k,:,:] = self.__adjust(w[k,:,:])
