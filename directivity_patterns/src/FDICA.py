@@ -8,10 +8,16 @@ from tqdm import tqdm
 #suppose that the number of sources and microphones are equal.
 
 class ICA:
+    '''
+    @func(__fai_func_sigmoid): use sigmoid as fai func.
+    @func(__fai_func_sign): use sign functio as fai func.
+    @func(__fai_func_tanh): use tanh as fai func.
+    '''
     
     def __init__(self):
         self.max_iter = 50
-        self.eta = 1.0 * 10 ** (-4) # is step size
+        self.eta = 1.0e-4 # is step size
+        self.EPS = 1.0e-12 # is epsilon for sign function below.
 
     def ica(self, x):
         x = np.array(x)
@@ -19,11 +25,45 @@ class ICA:
         y = np.dot(w, x)
         return y, w
 
-    def __fai_func(self, y):
+    def __sign_scalar(self,x,z):
+        '''
+        @input(z):complex scalar.
+        @output(x):complex scalar.
+        '''
+        if np.abs(z.real) < self.EPS:
+            x += 0.0
+        elif z.real > 0:
+            x += 1.0
+        else: 
+            x += -1.0
+
+        if np.abs(z.imag) < self.EPS:
+            x += 0.0
+        elif z.imag > 0:
+            x += 1.0j
+        else:
+            x += -1.0j
+        return x
+
+    def __sign(self,z):
+        sign_func = np.vectorize(self.__sign_scalar)
+        x = np.zeros_like(z)
+        return sign_func(x,z)
+
+    def __fai_func_sigmoid(self, y): 
         return 1/(1+np.exp(-y.real)) + 1j*1/(1+np.exp(-y.imag))
 
+    def __fai_func_sign(self, y):
+        return self.__sign(y)
+
+    def __fai_func_tanh(self,y):
+        return np.tanh(100.0 * y)
+
     def __alpha(self, y):
-        return  np.dot(self.__fai_func(y), y.T.conjugate())    
+        '''
+        You can change the __fai_func_xxxxx from 3 different function above.
+        '''
+        return  np.dot(self.__fai_func_sign(y), y.T.conjugate())    
 
     def __optimize(self, x):
         r,c = x.shape
@@ -54,6 +94,7 @@ class FDICA(ICA):
         @param(win):str, desired window to use.
         @param(nperseg): length of each segment.
         @param(noverlap): number of points to overlap between segments.
+        * (nperseg, noverlap) = (1024, 512) 
         '''
         super().__init__()
         self.m_shit = 5
@@ -68,12 +109,16 @@ class FDICA(ICA):
         X is complex64-type-3-dementional array whose x axis is microphie , y axis is the segment times, z is frequency respectively.
         @output(x_prd): 3 dimensional array whose 1st axis is the source index, 2nd is the microphon index, third is data of them.
         '''
-
+        
+        print('Now... short time discrete fourier transformation')
+        
         f,_,X = stft(self.x, self.sample_freq, self.win, self.nperseg, self.noverlap)
         # X is (channel index, freq index, time segment idex)
 
         y = self.reconstruct(f,X)
 
+        print('Now... inverted short time discrete fourier transformation')
+        
         _,x_prd = istft(y[:,:,:,0], self.sample_freq, self.win, self.nperseg, self.noverlap)
         
         return x_prd
@@ -91,6 +136,8 @@ class FDICA(ICA):
         epsilon_v = np.zeros(X.shape)
 
         v = np.zeros((X.shape[0], X.shape[1], X.shape[2], X.shape[0]), dtype=np.complex64)
+
+        print('Now... separation in each {} frequency.'.format(len(f)))
 
         for i in tqdm(range(len(f))): # i refers to the freq.
             U,B = self.ica(X[:,i,:])
@@ -110,6 +157,8 @@ class FDICA(ICA):
         y[:,0,:,:] = v[:,odr_sim[0],:,:]
         epsilon_y[:,0,:] = epsilon_v[:,odr_sim[0],:]
 
+        print('Now... permutation in each {} frequency.'.format(odr_sim))
+        
         for k, w_k in enumerate(tqdm(odr_sim)):
             if(k==0): 
                 continue
