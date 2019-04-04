@@ -1,6 +1,8 @@
 import numpy as np
+import sys
 import scipy.io.wavfile as wf
 from DirectivityPatterns import ICA, FDICA
+from sound_mixing import Preprocessing
 
 #prepare data
 rate1, data1 = wf.read('./fanfare.wav')
@@ -9,9 +11,15 @@ rate3, data3 = wf.read('./strings.wav')
 if rate1 != rate2 or rate2 != rate3:
     raise ValueError('Sampling_rate_Error')
 
-data = [data1.astype(float), data2.astype(float), data3.astype(float)]
+data = [data1.astype(float)/32768, data2.astype(float)/32768, data3.astype(float)/32768]
 
-y = FDICA(data, sample_freq=rate1).fdica()
+x = Preprocessing(data,10).mixing()
+
+wf.write('./music1.wav', rate1, x[0])
+wf.write('./music2.wav', rate2, x[1])
+wf.write('./music3.wav', rate3, x[2])
+
+y = FDICA(x, sample_freq=rate1).fdica()
 
 y = [(y_i * 32767 / max(np.absolute(y_i))).astype(np.int16) for y_i in np.asarray(y)]
 

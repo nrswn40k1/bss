@@ -12,6 +12,7 @@ class ICA:
     def __init__(self):
         self.max_iter = 50
         self.eta = 1.0 * 10 ** (-4) # is step size
+        self.EPS = 1.0e-12 # is epsilon for sign function below.
 
     def ica(self, x):
         x = np.array(x)
@@ -19,11 +20,47 @@ class ICA:
         y = np.dot(w, x)
         return y, w
 
-    def __fai_func(self, y):
+    def __sign_scalar(self,x,z):
+        '''
+        @input(z):complex scalar.
+        @output(x):complex scalar.
+        '''
+        if np.abs(z.real) < self.EPS:
+            x += 0.0
+        elif z.real > 0:
+            x += 1.0
+        else: 
+            x += -1.0
+
+        if np.abs(z.imag) < self.EPS:
+            x += 0.0
+        elif z.imag > 0:
+            x += 1.0j
+        else:
+            x += -1.0j
+        return x
+
+    def __sign(self,z):
+        sign_func = np.vectorize(self.__sign_scalar)
+        x = np.zeros_like(z)
+        return sign_func(x,z)
+
+    def __fai_func_sigmoid(self, y): 
         return 1/(1+np.exp(-y.real)) + 1j*1/(1+np.exp(-y.imag))
 
+    def __fai_func_sign(self, y):
+        return self.__sign(y)
+
+    def __fai_func_tanh(self,y):
+        return np.tanh(100.0 * y)
+
     def __alpha(self, y):
-        return  np.dot(self.__fai_func(y), y.T.conjugate())    
+        '''
+        You can change the __fai_func_xxxxx from 3 different function above.
+        '''
+        return  np.dot(self.__fai_func_sign(y), y.T.conjugate())    
+
+
 
     def __optimize(self, x):
         r,c = x.shape
@@ -33,7 +70,6 @@ class ICA:
         
         for _ in range(self.max_iter):
             y = np.dot(w, x)
-
             alpha = np.zeros((r,r), dtype=np.complex64)
 
             for i in range(c):
@@ -74,7 +110,7 @@ class FDICA(ICA):
 
         f,_,X = stft(self.x, self.sample_freq, self.win, self.nperseg, self.noverlap)
         # X is (channel index, freq index, time segment idex)
-
+        print(X.shape)
         Y = self.reconstruct(f,X,self.n)
 
         _,x_prd = istft(Y, self.sample_freq, self.win, self.nperseg, self.noverlap)
@@ -90,7 +126,6 @@ class FDICA(ICA):
         #全ての周波数ビンiについて
         for i in range(len(f)):
             _,W[:,:,i] = self.ica(X[:,i,:])
-
             #directivity pattern の関数Fを作成
 
 #            def F(theta):
@@ -103,19 +138,19 @@ class FDICA(ICA):
             def F0(theta):
                 F0 = 0
                 for k in range(n):
-                    F0 += W[0,k,i]*np.exp(1j*2*np.pi*f[i]*(k-1)*np.sin(theta)/340)
+                    F0 += W[0,k,i]*np.exp(1j*2*np.pi*f[i]*(k-1)*np.sin(theta)/340.5)
                 return F0
 
             def F1(theta):
                 F1 = 0
                 for k in range(n):
-                    F1 += W[1,k,i]*np.exp(1j*2*np.pi*f[i]*(k-1)*np.sin(theta)/340)
+                    F1 += W[1,k,i]*np.exp(1j*2*np.pi*f[i]*(k-1)*np.sin(theta)/340.5)
                 return F1
 
             def F2(theta):
                 F2 = 0
                 for k in range(n):
-                    F2 += W[2,k,i]*np.exp(1j*2*np.pi*f[i]*(k-1)*np.sin(theta)/340)
+                    F2 += W[2,k,i]*np.exp(1j*2*np.pi*f[i]*(k-1)*np.sin(theta)/340.5)
                 return F2
 
             #Fの最適化によりnull directionを探す
@@ -130,23 +165,23 @@ class FDICA(ICA):
             b1 = np.array([-np.pi/6,np.pi/6])
             b2 = np.array([np.pi/6,np.pi/2])
 
-            theta00 = minimize_scalar(F0,bounds=b0,method="bounded")
-            theta01 = minimize_scalar(F0,bounds=b1,method="bounded")
-            theta02 = minimize_scalar(F0,bounds=b2,method="bounded")
+            theta00 = minimize_scalar(F0,bounds=b0,method="bounded",options={"xatol":0.1})
+            theta01 = minimize_scalar(F0,bounds=b1,method="bounded",options={"xatol":0.1})
+            theta02 = minimize_scalar(F0,bounds=b2,method="bounded",options={"xatol":0.1})
 
-            theta10 = minimize_scalar(F1,bounds=b0,method="bounded")
-            theta11 = minimize_scalar(F1,bounds=b1,method="bounded")
-            theta12 = minimize_scalar(F1,bounds=b2,method="bounded")
+            theta10 = minimize_scalar(F1,bounds=b0,method="bounded",options={"xatol":0.1})
+            theta11 = minimize_scalar(F1,bounds=b1,method="bounded",options={"xatol":0.1})
+            theta12 = minimize_scalar(F1,bounds=b2,method="bounded",options={"xatol":0.1})
 
-            theta20 = minimize_scalar(F2,bounds=b0,method="bounded")
-            theta21 = minimize_scalar(F2,bounds=b1,method="bounded")
-            theta22 = minimize_scalar(F2,bounds=b2,method="bounded")
+            theta20 = minimize_scalar(F2,bounds=b0,method="bounded",options={"xatol":0.1})
+            theta21 = minimize_scalar(F2,bounds=b1,method="bounded",options={"xatol":0.1})
+            theta22 = minimize_scalar(F2,bounds=b2,method="bounded",options={"xatol":0.1})
 
-                #theta1,theta2,theta3のうち、二つは０に近いと考えられる。
-                #よってFが最大の方向のインデックスを取れば、音源の方向がわかる。
-            k0 = np.argmax(np.array([np.abs(theta00.x),np.abs(theta01.x),np.abs(theta02.x)]))
-            k1 = np.argmax(np.array([np.abs(theta10.x),np.abs(theta11.x),np.abs(theta12.x)]))
-            k2 = np.argmax(np.array([np.abs(theta20.x),np.abs(theta21.x),np.abs(theta22.x)]))
+            #theta*0,theta*1,theta*2のうち、二つは０に近いと考えられる。
+            #よってFが最大の方向のインデックスを取れば、音源の方向がわかる。
+            k0 = np.argmax(np.array([np.abs(F0(theta00.x)),np.abs(F0(theta01.x)),np.abs(F0(theta02.x))]))
+            k1 = np.argmax(np.array([np.abs(F1(theta10.x)),np.abs(F1(theta11.x)),np.abs(F2(theta12.x))]))
+            k2 = np.argmax(np.array([np.abs(F2(theta20.x)),np.abs(F2(theta21.x)),np.abs(F2(theta22.x))]))
             
             #Wの0行目を-60度方向の音、1行目を0度方向、2行目を60度方向に入れ替え
             if k0 == 1:
@@ -162,12 +197,15 @@ class FDICA(ICA):
             if k2 == 1:
                 W[2,:,i],W[1,:,i] = W[1,:,i],W[2,:,i]
 
+
             #規格化
             #Fを最小化するところで規格化してしまっているが、音源方向はABFと同じ働きによる音の抑制は少ないと考えられるのでこのまま規格化している
-            W[0,:,i] = W[0,:,i]/F0(theta00)
-            W[1,:,i] = W[1,:,i]/F1(theta11)
-            W[2,:,i] = W[2,:,i]/F2(theta22)
+            W[0,:,i] = W[0,:,i]/F0(theta00.x)
+            W[1,:,i] = W[1,:,i]/F1(theta11.x)
+            W[2,:,i] = W[2,:,i]/F2(theta22.x)
 
-            Y[:,i,:] = np.dot(W,X[:,i,:])
+            W_X = np.dot(W[:,:,i],X[:,i,:])
+            Y[:,i,:] = W_X
+            print(i)
         
         return Y
