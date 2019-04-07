@@ -35,12 +35,10 @@ class Preprocessing():
         s = self.s[:][50000:391000]
         x = np.zeros((3,341000), dtype=np.float32)
 
-        print(self.s[0][(50000+indexA2A):(391000+indexA2A)].shape)
-        print(x.shape)
         x[0][:] = self.s[0][(50000+indexA2A):(391000+indexA2A)]+self.s[1][(50000+indexB2A):(391000+indexB2A)]+self.s[2][(50000+indexC2A):(391000+indexC2A)]
         x[1][:] = self.s[0][50000:391000] + self.s[1][50000:391000] + self.s[2][50000:391000]
         x[2][:] = self.s[0][(50000+indexC2A):(391000+indexC2A)]+self.s[1][(50000+indexB2A):(391000+indexB2A)]+self.s[2][(50000+indexA2A):(391000+indexA2A)]
-
+        
         return x
 
 

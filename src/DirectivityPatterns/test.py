@@ -15,11 +15,11 @@ data = [data1.astype(float)/32768, data2.astype(float)/32768, data3.astype(float
 
 x = Preprocessing(data,10).mixing()
 
-wf.write('./music1.wav', rate1, x[0])
-wf.write('./music2.wav', rate2, x[1])
-wf.write('./music3.wav', rate3, x[2])
+wf.write('./music_mix1.wav', rate1, x[0])
+wf.write('./music_mix2.wav', rate2, x[1])
+wf.write('./music_mix3.wav', rate3, x[2])
 
-y = FDICA(x, sample_freq=rate1).fdica()
+y = FDICA(x, sample_freq=rate1,m_distance=10).fdica()
 
 y = [(y_i * 32767 / max(np.absolute(y_i))).astype(np.int16) for y_i in np.asarray(y)]
 
