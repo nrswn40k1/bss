@@ -3,6 +3,8 @@ from tqdm import tqdm
 from numpy.linalg import inv
 from scipy.signal import stft, istft
 
+epsilon = 1e-6
+
 
 # suppose that the number of sources and microphones are equal.
 
@@ -58,21 +60,39 @@ class IVA:
 
         return y
 
-    def __fai_func(self, y):
+    """
+    def __phi_func(self, y):
         # y is (channel index, freq index)
         # return is (channel index, freq index)
-        return np.array(y / np.matrix(np.sqrt(np.sum(np.abs(y)**2, axis=1))).T)
+        ysq = np.sum(np.abs(y)**2, axis=1)
+        ysq1 = 1/np.sqrt(ysq)
+        phi = (ysq1*y.T).T
+        return phi
+
 
     def __alpha(self, y):
         # y is (channel index, freq index, time segment index)
         M, K, T = y.shape
         alpha = np.zeros((K, M, M), dtype=np.complex64)
         for t in range(T):
-            fai = self.__fai_func(y[:,:,t])
+            phi = self.__phi_func(y[:,:,t])
             for k in range(K):
-                alpha[k,:,:] += np.dot(np.matrix(fai[:,k]).T, np.matrix(y[:,k,t].conjugate()))
+                alpha[k,:,:] += np.dot(np.matrix(phi[:,k]).T, np.matrix(y[:,k,t].conjugate()))
         alpha = alpha / T
         return np.array(alpha)
+    """
+
+    def __alpha2(self, y):
+        # y is (channel index, freq index, time segment index)
+        M, K, T = y.shape
+        alpha = np.zeros((K, M, M), dtype=np.complex64)
+
+        ysq = np.sum(np.abs(y) ** 2, axis=1)
+        ysq1 = 1 / np.sqrt(ysq)
+        for k in range(K):
+            phi = ysq1*y[:,k,:]
+            alpha[k,:,:] = np.dot(phi, np.conjugate(y[:,k,:].T))/T
+        return alpha
 
     def __adjust(self, w):
         w = np.dot(np.diag(np.diag(inv(w))), w)
@@ -88,7 +108,7 @@ class IVA:
         for _ in tqdm(range(self.max_iter)):
             for k in range(K):
                 y[:,k,:] = np.dot(w[k,:,:], X[:,k,:])
-            alpha = self.__alpha(y)
+            alpha = self.__alpha2(y)
             for k in range(K):
                 w[k,:,:] += self.eta * np.dot((np.eye(M) - alpha[k,:,:]), w[k,:,:])
 
