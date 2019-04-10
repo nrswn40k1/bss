@@ -242,4 +242,3 @@ class FDICA(ICA):
             for j in range(i,n):
                 sim += self.epsilon_dot(epsilon_v, w_i, i, w_i, j)/(self.epsilon_abs(epsilon_v, w_i, i)*self.epsilon_abs(epsilon_v, w_i, j))
         return sim
-
