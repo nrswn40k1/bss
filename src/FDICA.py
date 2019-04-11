@@ -50,7 +50,6 @@ class FDICA(ICA):
 
     def __init__(self, x, sample_freq, win='boxcar', nperseg=256, noverlap=128):
         '''
-        @param(d): is a vector which represents the distance from a reference point.
         @param(win):str, desired window to use.
         @param(nperseg): length of each segment.
         @param(noverlap): number of points to overlap between segments.
