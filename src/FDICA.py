@@ -157,7 +157,7 @@ class FDICA(ICA):
         y[:,0,:,:] = v[:,odr_sim[0],:,:]
         epsilon_y[:,0,:] = epsilon_v[:,odr_sim[0],:]
 
-        print('Now... permutation in each {} frequency.'.format(odr_sim))
+        print('Now... permutation in each {} frequency.'.format(len(odr_sim)))
         
         for k, w_k in enumerate(tqdm(odr_sim)):
             if(k==0): 
