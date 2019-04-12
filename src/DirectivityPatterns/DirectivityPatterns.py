@@ -77,7 +77,7 @@ class ICA:
                 alpha += self.__alpha(y[:,i])
             
             alpha = alpha/c
-            w += self.eta * np.dot((np.diag(alpha) - alpha),  inv(w.T.conjugate()))
+            w += self.eta * np.dot((np.diag(np.diag(alpha)) - alpha),  inv(w.T.conjugate()))
             
         return w
     

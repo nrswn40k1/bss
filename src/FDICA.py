@@ -15,7 +15,7 @@ class ICA:
     '''
     
     def __init__(self):
-        self.max_iter = 50
+        self.max_iter = 200
         self.eta = 1.0e-4 # is step size
         self.EPS = 1.0e-12 # is epsilon for sign function below.
 
@@ -63,7 +63,7 @@ class ICA:
         '''
         You can change the __fai_func_xxxxx from 3 different function above.
         '''
-        return  np.dot(self.__fai_func_sign(y), y.T.conjugate())    
+        return  np.dot(self.__fai_func_sigmoid(y), y.T.conjugate())    
 
     def __optimize(self, x):
         r,c = x.shape
@@ -73,10 +73,7 @@ class ICA:
         
         for _ in range(self.max_iter):
             y = np.dot(w, x)
-            alpha = np.zeros((r,r), dtype=np.complex64)
-
-            for i in range(c):
-                alpha += self.__alpha(y[:,i])
+            alpha = self.__alpha(y)
             
             alpha = alpha/c
             w += self.eta * np.dot((np.diag(np.diag(alpha)) - alpha),  inv(w.T.conjugate()))
@@ -156,7 +153,7 @@ class FDICA(ICA):
         y[:,0,:,:] = v[:,odr_sim[0],:,:]
         epsilon_y[:,0,:] = epsilon_v[:,odr_sim[0],:]
 
-        print('Now... permutation in each {} frequency.'.format(odr_sim))
+        print('Now... permutation in each {} frequency.'.format(len(odr_sim)))
         
         for k, w_k in enumerate(tqdm(odr_sim)):
             if(k==0): 
