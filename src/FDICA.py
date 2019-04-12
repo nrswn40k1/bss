@@ -3,6 +3,7 @@ from numpy.linalg import inv
 from scipy.signal import stft, istft
 from munkres import Munkres, print_matrix
 from tqdm import tqdm
+import time
 
 
 #suppose that the number of sources and microphones are equal.
@@ -14,10 +15,11 @@ class ICA:
     @func(__fai_func_tanh): use tanh as fai func.
     '''
     
-    def __init__(self):
-        self.max_iter = 200
+    def __init__(self, num_iter=200):
+        self.max_iter = num_iter
         self.eta = 1.0e-4 # is step size
         self.EPS = 1.0e-12 # is epsilon for sign function below.
+        print('TDICA iteration: {} [times]'.format(self.max_iter))
 
     def ica(self, x):
         x = np.array(x)
@@ -76,7 +78,7 @@ class ICA:
             alpha = self.__alpha(y)
             
             alpha = alpha/c
-            w += self.eta * np.dot((np.diag(np.diag(alpha)) - alpha),  inv(w.T.conjugate()))
+            w += self.eta * np.dot((np.diag(np.diag(alpha)) - alpha),  w)
             
         return w
     
@@ -85,27 +87,31 @@ class FDICA(ICA):
     The class FDCIA is inherited from ICA
     '''
 
-    def __init__(self, x, sample_freq, win='boxcar', nperseg=256, noverlap=128):
+    def __init__(self, x, sample_freq, num_iter=200, win='boxcar', nperseg=256, noverlap=126):
         '''
+        @param(n_iter): the times of iteration of TDICA optmization.
         @param(win):str, desired window to use.
         @param(nperseg): length of each segment.
         @param(noverlap): number of points to overlap between segments.
         * (nperseg, noverlap) = (1024, 512) 
         '''
-        super().__init__()
+        super().__init__(num_iter=num_iter)
         self.m_shit = 5
         self.x = np.array(x)
         self.sample_freq = sample_freq
         self.win = win
         self.nperseg = nperseg
         self.noverlap = noverlap
+        print('The sample frequency: {} [/sec]'.format(sample_freq))
+        print('The length of each segment: {}'.format(nperseg))
+        print('The number of points to overlap between segments: {}'.format(noverlap))
 
     def fdica(self):
         '''
         X is complex64-type-3-dementional array whose x axis is microphie , y axis is the segment times, z is frequency respectively.
         @output(x_prd): 3 dimensional array whose 1st axis is the source index, 2nd is the microphon index, third is data of them.
         '''
-        
+        start = time.time()
         print('Now... short time discrete fourier transformation')
         
         f,_,X = stft(self.x, self.sample_freq, self.win, self.nperseg, self.noverlap)
@@ -117,6 +123,8 @@ class FDICA(ICA):
         
         _,x_prd = istft(y[:,:,:,0], self.sample_freq, self.win, self.nperseg, self.noverlap)
         
+        deltatime = time.time()-start
+        print('FDICA took {} [sec] to finish'.format(deltatime)) 
         return x_prd
 
 
