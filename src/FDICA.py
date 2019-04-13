@@ -79,7 +79,6 @@ class ICA:
             
             alpha = alpha/c
             w += self.eta * np.dot((np.diag(np.diag(alpha)) - alpha),  w)
-            
         return w
     
 class FDICA(ICA):
@@ -95,6 +94,7 @@ class FDICA(ICA):
         @param(noverlap): number of points to overlap between segments.
         * (nperseg, noverlap) = (1024, 512) 
         '''
+        print('-----------------------------------------')
         super().__init__(num_iter=num_iter)
         self.m_shit = 5
         self.x = np.array(x)
@@ -124,7 +124,8 @@ class FDICA(ICA):
         _,x_prd = istft(y[:,:,:,0], self.sample_freq, self.win, self.nperseg, self.noverlap)
         
         deltatime = time.time()-start
-        print('FDICA took {} [sec] to finish'.format(deltatime)) 
+        print('FDICA took {} [sec] to finish'.format(deltatime))
+        print('-----------------------------------------')
         return x_prd
 
 
