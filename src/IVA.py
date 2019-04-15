@@ -20,9 +20,8 @@ class IVA:
         @param(nperseg): length of each segment.
         @param(noverlap): number of points to overlap between segments.
         '''
-        self.max_iter = 200
-        self.eta = 1.0 * 10 ** (-4)  # is step size
-        self.m_shit = 5
+        self.max_iter = 1000
+        self.eta = 2.5 * 10 ** (-2)  # is step size
         self.x = np.array(x)
         self.sample_freq = sample_freq
         self.win = win
@@ -36,7 +35,7 @@ class IVA:
         '''
 
         f, _, X = stft(self.x, self.sample_freq, self.win, self.nperseg, self.noverlap)
-        # X is (channel index, freq index, time segment idex)
+        # X is (channel index, freq index, time segment index)
 
         y = self.reconstruct(X)
 
@@ -54,6 +53,7 @@ class IVA:
         '''
 
         w = self.__optimize(X)
+        print(w[:2,:,:])
         y = np.empty(X.shape, dtype=np.complex64)
         for k in range(X.shape[1]):
             y[:,k,:] = np.dot(w[k,:,:], X[:,k,:])
@@ -103,6 +103,7 @@ class IVA:
         w = np.zeros((K, M, M), dtype=np.complex64)
         y = np.empty((M, K, T), dtype=np.complex64)
         for k in range(K):
+            # w[k,:,:] += np.random.randn(M,M)
             w[k,:,:] += np.eye(M)
 
         for _ in tqdm(range(self.max_iter)):
