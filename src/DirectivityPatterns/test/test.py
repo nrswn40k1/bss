@@ -15,8 +15,6 @@ new_data1 = data1.T[0,:]
 new_data2 = data2.T[0,:]
 new_data3 = data3.T[0,:]
 
-sys.exit()
-
 data = np.array([new_data1.astype(float)/32767, new_data2.astype(float)/32767, new_data3.astype(float)/32767])
 print(data.shape)
 x = Preprocessing(data,100).mixing()
