@@ -10,8 +10,8 @@ from scipy.signal import stft, istft
 class ICA:
     
     def __init__(self):
-        self.max_iter = 50
-        self.eta = 1.0 * 10 ** (-4) # is step size
+        self.max_iter = 200
+        self.eta = 1.0e-4 # is step size
         self.EPS = 1.0e-12 # is epsilon for sign function below.
 
     def ica(self, x):
