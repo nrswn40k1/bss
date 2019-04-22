@@ -5,6 +5,7 @@
 #中心からはそれぞれ１メートルであるが、端からは長い方は1.9319メートル、短い方は0.51763メートルである
 
 import numpy as np
+from scipy.signal import stft, istft
 
 class Preprocessing():
 
@@ -25,19 +26,17 @@ class Preprocessing():
         all2bTime = all2bDis/340.5 #これが基準
         a2cTime = a2cDis/340.5
         a2aTime = a2aDis/340.5
-        b2aTime = b2aDis/340.5
+        b2aTime = b2aDis/340.
 
-        indexA2A = int(np.round((a2aTime - all2bTime)*44100))
-        indexB2A = int(np.round((b2aTime - all2bTime)*44100))
-        indexC2A = int(np.round((a2cTime - all2bTime)*44100))
-        
+        F,_,S = stft(self.s, 44100, "boxcar", 256, 128)
+        n_bin = len(F)
+        X = np.array(S.shape,dtype='complex64')
+        for f in range(n_bin):
+            X[0,f,:] = S[0,f,:]*np.exp(-1j*2*np.pi*F[f]*a2aTime)+S[1,f,:]*np.exp(-1j*2*np.pi*F[f]*b2aTime)+S[2,f,:]*np.exp(-1j*2*np.pi*F[f]*a2cTime)
+            X[1,f,:] = S[0,f,:]*np.exp(-1j*2*np.pi*F[f]*all2bTime)+S[1,f,:]*np.exp(-1j*2*np.pi*F[f]*all2bTime)+S[2,f,:]*np.exp(-1j*2*np.pi*F[f]*all2bTime)
+            X[2,f,:] = S[0,f,:]*np.exp(-1j*2*np.pi*F[f]*a2cTime)+S[1,f,:]*np.exp(-1j*2*np.pi*F[f]*b2aTime)+S[2,f,:]*np.exp(-1j*2*np.pi*F[f]*a2aTime)
 
-        x = np.zeros((3,341000), dtype=np.float32)
-
-        x[0][:] = 1.2*self.s[0][(50000+indexA2A):(391000+indexA2A)]+self.s[1][(50000+indexB2A):(391000+indexB2A)]+0.8*self.s[2][(50000+indexC2A):(391000+indexC2A)]
-        x[1][:] = self.s[0][50000:391000] + self.s[1][50000:391000] + self.s[2][50000:391000]
-        x[2][:] = 0.8*self.s[0][(50000+indexC2A):(391000+indexC2A)]+self.s[1][(50000+indexB2A):(391000+indexB2A)]+1.2*self.s[2][(50000+indexA2A):(391000+indexA2A)]
-        
+        _, x = istft(X, 44100, "boxcar", 256, 128)
         return x
 
 

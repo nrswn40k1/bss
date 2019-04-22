@@ -3,6 +3,7 @@ import numpy as np
 from numpy.linalg import inv
 from scipy.optimize import minimize_scalar
 from scipy.signal import stft, istft
+import sys
 
 
 #suppose that the number of sources and microphones are equal.
@@ -10,7 +11,7 @@ from scipy.signal import stft, istft
 class ICA:
     
     def __init__(self):
-        self.max_iter = 200
+        self.max_iter = 500
         self.eta = 1.0e-4 # is step size
         self.EPS = 1.0e-12 # is epsilon for sign function below.
 
@@ -20,39 +21,8 @@ class ICA:
         y = np.dot(w, x)
         return y, w
 
-    def __sign_scalar(self,x,z):
-        '''
-        @input(z):complex scalar.
-        @output(x):complex scalar.
-        '''
-        if np.abs(z.real) < self.EPS:
-            x += 0.0
-        elif z.real > 0:
-            x += 1.0
-        else: 
-            x += -1.0
-
-        if np.abs(z.imag) < self.EPS:
-            x += 0.0
-        elif z.imag > 0:
-            x += 1.0j
-        else:
-            x += -1.0j
-        return x
-
-    def __sign(self,z):
-        sign_func = np.vectorize(self.__sign_scalar)
-        x = np.zeros_like(z)
-        return sign_func(x,z)
-
     def __fai_func_sigmoid(self, y): 
         return 1/(1+np.exp(-y.real)) + 1j*1/(1+np.exp(-y.imag))
-
-    def __fai_func_sign(self, y):
-        return self.__sign(y)
-
-    def __fai_func_tanh(self,y):
-        return np.tanh(100.0 * y)
 
     def __alpha(self, y):
         '''
@@ -68,16 +38,12 @@ class ICA:
         w = np.zeros((r,r), dtype=np.complex64)
         w += np.diag(np.ones(r))
         
-        
         for _ in range(self.max_iter):
             y = np.dot(w, x)
-            alpha = np.zeros((r,r), dtype=np.complex64)
-
-            for i in range(c):
-                alpha += self.__alpha(y[:,i])
+            alpha = self.__alpha(y)
             
             alpha = alpha/c
-            w += self.eta * np.dot((np.diag(np.diag(alpha)) - alpha),  inv(w.T.conjugate()))
+            w += self.eta * np.dot((np.diag(np.diag(alpha)) - alpha), w)
             
         return w
     
@@ -207,13 +173,18 @@ class FDICA(ICA):
 
 
             #規格化
-            #Fを最小化するところで規格化してしまっているが、音源方向はABFと同じ働きによる音の抑制は少ないと考えられるのでこのまま規格化している
-            W[0,:,i] = W[0,:,i]/F0(theta00.x)
-            W[1,:,i] = W[1,:,i]/F1(theta11.x)
-            W[2,:,i] = W[2,:,i]/F2(theta22.x)
+            #Fを最小化するところで規格化してしまっているが、音源方向はABFによる音の抑制は少ないと考えられるのでこのまま規格化している
+            W[0,:,i] = W[0,:,i]/F0(-np.pi/4)
+            W[1,:,i] = W[1,:,i]/F1(0)
+            W[2,:,i] = W[2,:,i]/F2(np.pi/4)
 
+            print(W[0,:,i])
+            print("aaaaa")
             W_X = np.dot(W[:,:,i],X[:,i,:])
             Y[:,i,:] = W_X
+            print(Y[:,i,:])
             print(i)
+
+            sys.exit()
         
         return Y
