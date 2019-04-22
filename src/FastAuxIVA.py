@@ -1,7 +1,6 @@
 import numpy as np
 from numpy.linalg import inv
 from scipy.signal import stft, istft
-import sys
 
 
 # suppose that the number of sources and microphones are equal.
@@ -18,7 +17,8 @@ class AuxIVA:
         @param(nperseg): length of each segment.
         @param(noverlap): number of points to overlap between segments.
         '''
-        self.max_iter = 15
+        self.max_iter = 25
+        self.eta = 2.5 * 10 ** (-2)  # is step size
         self.x = np.array(x)
         self.sample_freq = sample_freq
         self.win = win
@@ -68,7 +68,7 @@ class AuxIVA:
                 c = 0
                 for k in range(nchannel):
                     for t in range(n_timesegment):
-                        c += np.power(np.linalg.norm(Y[k,t]),2)
+                        c += np.absolute(Y[k,t])**2
                 c = c/n_timesegment/nchannel/n_bin
                 W[f,:,:] = W[f,:,:]/np.linalg.norm(c)
             print(i)
@@ -77,10 +77,10 @@ class AuxIVA:
 
 
 
-    def Y_L2norm(self,W,X,k,n_bin,n_timesegment):
-        r = np.zeros((n_timesegment))
+    def Y_L2norm(self,W,X,n_channels,n_bin,n_timesegment):
+        r = np.zeros((n_channels,n_timesegment))
         for i in range(n_bin):
-            r += np.power(np.absolute(np.dot(W[k],X)),2)
+            r += np.power(np.absolute(np.dot(W,X)),2)
         return np.sqrt(r)
     
     def WeigtingFunction(self,r,beta,n_timesegment,fai0=1000):
@@ -97,4 +97,4 @@ class AuxIVA:
         for i in range(n_timesegment):
             V += fai[i]*np.dot(X[:,np.newaxis,i],np.conjugate(X[:,np.newaxis,i].T))
         return V/n_timesegment
-   
+    
