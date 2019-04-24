@@ -53,34 +53,11 @@ class IVA:
         '''
 
         w = self.__optimize(X)
-        print(w[:2,:,:])
         y = np.empty(X.shape, dtype=np.complex64)
         for k in range(X.shape[1]):
             y[:,k,:] = np.dot(w[k,:,:], X[:,k,:])
 
         return y
-
-    """
-    def __phi_func(self, y):
-        # y is (channel index, freq index)
-        # return is (channel index, freq index)
-        ysq = np.sum(np.abs(y)**2, axis=1)
-        ysq1 = 1/np.sqrt(ysq)
-        phi = (ysq1*y.T).T
-        return phi
-
-
-    def __alpha(self, y):
-        # y is (channel index, freq index, time segment index)
-        M, K, T = y.shape
-        alpha = np.zeros((K, M, M), dtype=np.complex64)
-        for t in range(T):
-            phi = self.__phi_func(y[:,:,t])
-            for k in range(K):
-                alpha[k,:,:] += np.dot(np.matrix(phi[:,k]).T, np.matrix(y[:,k,t].conjugate()))
-        alpha = alpha / T
-        return np.array(alpha)
-    """
 
     def __alpha2(self, y):
         # y is (channel index, freq index, time segment index)
@@ -103,7 +80,6 @@ class IVA:
         w = np.zeros((K, M, M), dtype=np.complex64)
         y = np.empty((M, K, T), dtype=np.complex64)
         for k in range(K):
-            # w[k,:,:] += np.random.randn(M,M)
             w[k,:,:] += np.eye(M)
 
         for _ in tqdm(range(self.max_iter)):
