@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
-import moviepy.editor as mp
-from moviepy.audio.AudioClip import AudioClip
+from moviepy.video.io.ffmpeg_tools import ffmpeg_merge_video_audio
 import cis
 
 face_cascade_path = "./haarcascade/haarcascade_frontalface_alt2.xml"
@@ -13,7 +12,10 @@ class FacialRecog:
     def __init__(self, mvfile, rawvoice, sepvoice, afps, outfile="output"):
         """
         :param mvfile: path of the movie file
-        :param voice:  2 dementional array whose x is source index and y is time index
+        :param rawvoice: 1 dementional array whose x is time index
+        :param sepvoice: 2 dementional array whose x is source index and y is time index
+        :param afps : fps of audioflie
+        :param outfile : name of output file
         """
         self.mv = mvfile
         self.cap = cv2.VideoCapture(self.mv)
@@ -64,9 +66,7 @@ class FacialRecog:
         print("set audio...")
         audio = self.__audio_concat()
         cis.wavwrite(self.outfile+".wav", self.afps, audio)
-        videoclip = mp.VideoFileClip(self.outfile+".avi")
-        videoclip.write_videofile(self.outfile+".mp4", audio=self.outfile+".wav",
-                                  codec="h264")
+        ffmpeg_merge_video_audio(video=self.outfile+".avi", audio=self.outfile+".wav", output=self.outfile+"_demo.avi")
 
     def __getbox(self, src, index):
         src_gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
@@ -114,4 +114,4 @@ if __name__ == "__main__":
     rawvoice = np.array(data4, dtype=np.float32)
 
     recog = FacialRecog("samples/test.mp4", rawvoice, sepvoice, rate1, "samples/output")
-    recog.set_audio()
+    recog.main()
