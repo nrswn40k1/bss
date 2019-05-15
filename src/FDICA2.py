@@ -1,11 +1,11 @@
 import numpy as np
 from numpy.linalg import inv
 from scipy.signal import stft, istft
-from munkres import Munkres, print_matrix
 from sklearn.cluster import KMeans
 from tqdm import tqdm
 import time
 import sys
+import warnings
 
 #suppose that the number of sources and microphones are equal.
 
@@ -28,7 +28,7 @@ class ICA:
         return y, w
 
     def __fai_func_sigmoid(self, y): 
-        return 1/(1+np.exp(-y.real)) + 1j*1/(1+np.exp(-y.imag))
+        return 1.0/(1.0+np.exp(-y.real)) + 1.0j*1.0/(1.0+np.exp(-y.imag))
 
     def __fai_func_tanh(self,y):
         return np.tanh(100.0 * y)
@@ -67,7 +67,7 @@ class FDICA(ICA):
 		'''
 		print('-----------------------------------------')
 		super().__init__(num_iter=num_iter)
-		self.num_theta = 10000
+		self.num_theta = 1000
 		self.c = 340.29
 		self.num_speaker = x.shape[0]
 		self.x = np.array(x)
@@ -117,19 +117,19 @@ class FDICA(ICA):
 		
 		for i in tqdm(range(len(f))):
 			"""(step 1) initialization of w"""
-			#w = np.ones((X.shape[0], X.shape[0]), dtype=np.complex64)
-			w = np.eye(X.shape[0], dtype=np.complex64)
+			w = np.ones((X.shape[0], X.shape[0]), dtype=np.complex64)
+			#w = np.eye(X.shape[0], dtype=np.complex64)
 			x = X[:,i,:]
 			thetas = np.zeros(self.num_speaker)
 			f[i] = float(f[i])
 
 			for _ in range(self.max_iter):
 				W_ica = self.__ica_optimize(w, x)
-				thetas = self.__doa_estimation(W_ica, f[i])
-				if thetas != False:
+				try:
+					thetas = self.__doa_estimation(W_ica, f[i])
 					W_bf = self.__beamforming(thetas, f[i])
 					w = self.__diversity_with_cost_func(W_ica, W_bf, x)
-				else:
+				except:
 					w = W_ica
 			
 			y[:,i,:] = self.__ordering_and_scaling(w, x, thetas, f[i])
@@ -155,20 +155,22 @@ class FDICA(ICA):
 		''' 
 		e = np.zeros((self.d.shape[0], self.num_theta), dtype=np.complex64)
 		self.d = self.d.reshape((self.d.shape[0],1))
-		e = np.exp(1.0j*2.0*np.pi*freq/self.c*np.dot(self.d, np.sin(np.linspace(-np.pi, np.pi, self.num_theta)).reshape((1,self.num_theta))))
+		e = np.exp(1.0j*2.0*np.pi*freq/self.c*np.dot(self.d, np.sin(np.linspace(-np.pi/2, np.pi/2, self.num_theta)).reshape((1,self.num_theta))))
 		F = np.abs(np.dot(w, e))
 		F_diff = np.diff(F, axis=-1)
 		first_condi = np.where(F_diff[:,:-1] <= 0, 1, 0) #first condition satisfied = 1 
 		second_condi = np.where(F_diff[:,1:] > 0, 1, 0) # second condition satisfied = 1
 		satisfied = first_condi*second_condi
-		candidate_theta = np.linspace(-np.pi, np.pi, self.num_theta)[(np.where(satisfied==1)[1] + 1)]
-		
-		if candidate_theta.shape[0] < self.num_speaker:
-			return False
+		candidate_theta = np.linspace(-np.pi/2, np.pi/2, self.num_theta)[(np.where(satisfied==1)[1] + 1)]
 
 		"""LIoyd clustering algorithm"""
-		km = KMeans(n_clusters=self.num_speaker)
-		km.fit(candidate_theta.reshape(-1,1))
+		try:
+			with warnings.catch_warnings():
+				warnings.simplefilter("error")
+				km = KMeans(n_clusters=self.num_speaker)
+				km.fit(candidate_theta.reshape(-1,1))
+		except Exception as e:
+			raise
 		
 		return  km.cluster_centers_
 		
@@ -177,10 +179,13 @@ class FDICA(ICA):
 		(step 4) Beamforming in one frequency bin.
 		@output(): W_bf
 		'''
-		e_hat = np.zeros((self.d.shape[0], self.num_speaker), dtype=np.complex64)
-		self.d = self.d.reshape((self.d.shape[0],1))
-		e_hat = np.exp(1j*2.0*np.pi*freq/self.c*np.dot(self.d, np.sin(thetas).reshape((1,self.num_speaker))))
-		return inv(e_hat)
+		try:
+			e_hat = np.zeros((self.d.shape[0], self.num_speaker), dtype=np.complex64)
+			self.d = self.d.reshape((self.d.shape[0],1))
+			e_hat = np.exp(1j*2.0*np.pi*freq/self.c*np.dot(self.d, np.sin(thetas).reshape((1,self.num_speaker))))
+			return inv(e_hat)
+		except Exception as e:
+			raise
 
 	def __diversity_with_cost_func(self, W_ica, W_bf, x):
 		'''
@@ -188,6 +193,7 @@ class FDICA(ICA):
 		@input(x): frequency-domain data of a certain freq.
 		'''
 		if self.__cost_func(W_ica, x) <= self.__cost_func(W_bf, x):
+			print(W_ica)
 			return W_ica
 		else:
 			return W_bf
@@ -197,8 +203,8 @@ class FDICA(ICA):
 		internal function used in __diversity_with_cost_func.
 		'''
 		y = np.dot(W,x)
-		corr_y = np.corrcoef(y)
-		return 1.0/2.0*np.sum(corr_y - np.diag(np.diag(corr_y))) 
+		corr_y = np.abs(np.corrcoef(y))
+		return np.sum(corr_y - np.diag(np.diag(corr_y))) 
 
 	def __ordering_and_scaling(self, W, x, thetas, freq):
 		'''
@@ -211,7 +217,3 @@ class FDICA(ICA):
 		threshold = np.min(np.max(F, axis=1))
 		F = np.where(F >= threshold, 1/F, 0).T
 		return np.dot(F, np.dot(W, x))
-	
-
-		
-		
