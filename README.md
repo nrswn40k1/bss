@@ -142,3 +142,10 @@ MFCC is used to recognize speaker
 - librosa
 - sklearn
 - pickle
+
+### Facial Recognition
+-------------------------------
+#### Requirments (Library dependency)
+- opencv-python
+- opencv-contrib-python
+- moviepy
