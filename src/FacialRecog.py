@@ -106,12 +106,12 @@ class FacialRecog:
 
 
 if __name__ == "__main__":
-    rate1, data1 = cis.wavread('./samples/voice/ilrma_f1.wav')
-    rate2, data2 = cis.wavread('./samples/voice/ilrma_f2.wav')
-    rate3, data3 = cis.wavread('./samples/voice/ilrma_f3.wav')
-    rate4, data4 = cis.wavread('./samples/voice/fmix_1.wav')
+    rate1, data1 = cis.wavread('./samples/group/auxiva_2.wav')
+    rate2, data2 = cis.wavread('./samples/group/auxiva_1.wav')
+    rate3, data3 = cis.wavread('./samples/group/auxiva_0.wav')
+    rate4, data4 = cis.wavread('./samples/group/output.wav')
     sepvoice = np.array([data1, data2, data3], dtype=np.float32)
     rawvoice = np.array(data4, dtype=np.float32)
 
-    recog = FacialRecog("samples/test.mp4", rawvoice, sepvoice, rate1, "samples/output")
-    recog.main()
+    recog = FacialRecog("samples/WIN_20190515_18_14_38_Pro.mp4", rawvoice[:,0], sepvoice, rate1, "samples/twitter")
+    recog.set_audio()
