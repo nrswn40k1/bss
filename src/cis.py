@@ -1,13 +1,13 @@
 import numpy as np
-import simpleaudio as sa
+#import simpleaudio as sa
 import scipy.io.wavfile as sw
 
-
+'''
 def audioplay(fs, y):
     yout = np.iinfo(np.int16).max / np.max(np.abs(y)) * y
     yout = yout.astype(np.int16)
     play_obj = sa.play_buffer(yout, y.ndim, 2, fs)
-
+'''
 
 def wavread(wavefile):
     fs, y = sw.read(wavefile)
