@@ -18,7 +18,7 @@ class AuxIVA:
         @param(nperseg): length of each segment.
         @param(noverlap): number of points to overlap between segments.
         '''
-        self.max_iter = 15
+        self.max_iter = 20
         self.x = np.array(x)
         self.sample_freq = sample_freq
         self.win = win
@@ -51,50 +51,48 @@ class AuxIVA:
     def W_estimate(self,X,n_bin,n_timesegment):
         nchannel = self.nchannel
         W = np.zeros((n_bin,nchannel,nchannel),dtype='complex64')
+        Y_k = np.zeros((nchannel,n_bin,n_timesegment),dtype='complex64')
+
         for f in range(n_bin):
             W[f,:,:] = np.eye(nchannel, dtype='complex64')
 
         for i in range(self.max_iter):
+            r = self.Y_L2norm(W,X,n_bin,n_timesegment,nchannel)
+            fai = self.WeigtingFunction(r,self.beta)
             for f in range(n_bin):
+                V = self.CovarianceMatrix(fai,X[:,f,:],n_timesegment)
                 for k in range(nchannel):
-                    r = self.Y_L2norm(W[f,:,:],X[:,f,:],k,n_bin,n_timesegment)
-                    fai = self.WeigtingFunction(r,self.beta,n_timesegment)
-                    V = self.CovarianceMatrix(fai,X[:,f,:],n_timesegment)
-                    w_k = np.zeros(nchannel)
-                    w_k = np.dot(np.linalg.inv(np.dot(W[f,:,:],V)),np.eye(nchannel)[k].T)
-                    w_k = w_k/np.sqrt(np.dot(np.dot(np.conjugate(w_k.T),V),w_k))
+                    w_k = np.zeros(nchannel,dtype="complex64")
+                    w_k = np.dot(np.linalg.inv(np.dot(W[f,:,:],V[k,:,:])),np.eye(nchannel)[k])
+                    w_k = w_k/np.sqrt(np.dot(np.dot(np.conjugate(w_k.T),V[k,:,:]),w_k))
                     W[f,k,:] = np.conjugate(w_k)
-                Y = np.dot(W[f,:,:],X[:,f,:])
-                c = 0
-                for k in range(nchannel):
-                    for t in range(n_timesegment):
-                        c += np.power(np.linalg.norm(Y[k,t]),2)
-                c = c/n_timesegment/nchannel/n_bin
-                W[f,:,:] = W[f,:,:]/np.linalg.norm(c)
+                Y_k[:,f,:] = np.dot(W[f,:,:],X[:,f,:])
+            self.Scaling(W,Y_k,n_timesegment,nchannel,n_bin)
             print(i)
         return W
 
-
-
-
-    def Y_L2norm(self,W,X,k,n_bin,n_timesegment):
-        r = np.zeros((n_timesegment))
+    def Y_L2norm(self,W,X,n_bin,n_timesegment,nchannel):
+        r = np.zeros((nchannel,n_timesegment))
         for i in range(n_bin):
-            r += np.power(np.absolute(np.dot(W[k],X)),2)
+            r += np.power(np.absolute(np.dot(W[i,:,:],X[:,i,:])),2)
         return np.sqrt(r)
     
-    def WeigtingFunction(self,r,beta,n_timesegment,fai0=1000):
-        for t in range(n_timesegment):
-            if(r[t]>=fai0):
-                r[t] = r[t]**(beta-2)
-            else:
-                r[t]=fai0
-        return r
+    def WeigtingFunction(self,r,beta,fai0=1000):
+        r = np.power(r,beta-2)
+        return np.clip(r,None,fai0)
 
     def CovarianceMatrix(self,fai,X,n_timesegment):
         nchannel = self.nchannel
-        V = np.zeros((nchannel,nchannel), dtype='complex64')
-        for i in range(n_timesegment):
-            V += fai[i]*np.dot(X[:,np.newaxis,i],np.conjugate(X[:,np.newaxis,i].T))
+        V = np.zeros((nchannel,nchannel,nchannel), dtype='complex64')
+        for k in range(nchannel):
+            V[k,:,:] = np.dot(fai[k]*X,np.conjugate(X.T))
         return V/n_timesegment
-   
+
+    def Scaling(self,W,Y_k,n_timesegment,nchannel,n_bin):
+        c = 0
+        for i in range(nchannel):
+            for t in range(n_timesegment):
+                c += np.linalg.norm(Y_k[i,:,t],2)
+        c = c/n_timesegment/nchannel/n_bin
+        return W/c
+
