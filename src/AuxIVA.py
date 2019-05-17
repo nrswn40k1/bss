@@ -12,7 +12,7 @@ import sys
 
 class AuxIVA:
 
-    def __init__(self, x, sample_freq, beta=0.2, win='hanning', nperseg=256, noverlap=128,nchannel=3):
+    def __init__(self, x, sample_freq, beta=0.3, win='hanning', nperseg=256, noverlap=128,nchannel=3):
         '''
         @param(win):str, desired window to use.
         @param(nperseg): length of each segment.
