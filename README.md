@@ -131,3 +131,21 @@ cis.wavwrite('./samples/sepdata/ilrma_3.wav', fs, y[2])
 
 #### Reference
 - Blind Source Separation Based on Independent Low-Rank Matrix Analysis
+
+### Speaker Recognition
+-------------------------------
+MFCC is used to recognize speaker
+
+#### Requirements (library dependency)
+- numpy
+- scipy
+- librosa
+- sklearn
+- pickle
+
+### Facial Recognition
+-------------------------------
+#### Requirments (Library dependency)
+- opencv-python
+- opencv-contrib-python
+- moviepy
