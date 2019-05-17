@@ -168,7 +168,7 @@ def start_video_recording(device_index, save_directory, video_filename):
 
 
 
-def start_audio_recording(num_channels, a_input_device_index, a_save_directory, audio_filename):
+def start_audio_recording(num_channels, a_save_directory, audio_filename):
 
     global audio_thread
 
@@ -232,11 +232,20 @@ def file_manager(directoryname, filename):
 
 if __name__ == '__main__':
     '''
-    start_video_recording('test-video', 2, './samples/', 'temp_video.avi')
+    #usage for instance, only video
+    start_video_recording(2, './samples/', 'temp_video.avi')
     time.sleep(10)
     video_thread.stop()
     '''
-    #usage for instance,
+
+    '''
+    #usage for instance, only audio
+    start_audio_recording(2, './samples/', 'temp_video.avi')
+    time.sleep(10)
+    audio_thread.stop()
+    '''
+
+    #usage for instance, simultaneouly
     start_AVrecording(2, './samples/', 'temp_video.avi', 2, './samples/', 'temp_audio.avi')
     time.sleep(10)
     stop_AVrecording()
