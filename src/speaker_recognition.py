@@ -37,8 +37,7 @@ class speaker_recognition:
         
 
 if __name__=="__main__":
-    n_people = input()
-    n_people = int(n_people)
+    n_people = 3
     SR = speaker_recognition(n_people)
     index = SR.transform()
     _,data = wf.read("./group/output_%d.wav"%index[0])
