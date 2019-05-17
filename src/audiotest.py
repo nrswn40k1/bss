@@ -8,7 +8,7 @@ FORMAT = pyaudio.paInt16
 CHANNELS = 3
 RATE = 44100
 RECORD_SECONDS = 10
-group_number = '3'
+group_number = '5'
 WAVE_OUTPUT_FILENAME = "./samples/group{}/output.wav".format(group_number)
 
 p = pyaudio.PyAudio()
@@ -17,7 +17,7 @@ stream = p.open(format=FORMAT,
                 channels=CHANNELS,
                 rate=RATE,
                 input=True,
-                input_device_index=12,
+                input_device_index=14,
                 frames_per_buffer=CHUNK
                 )
 
