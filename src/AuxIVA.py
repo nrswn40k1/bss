@@ -18,7 +18,7 @@ class AuxIVA:
         @param(nperseg): length of each segment.
         @param(noverlap): number of points to overlap between segments.
         '''
-        self.max_iter = 20
+        self.max_iter = 100
         self.x = np.array(x)
         self.sample_freq = sample_freq
         self.win = win
