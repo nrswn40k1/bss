@@ -1,0 +1,81 @@
+"""
+MFCC のトレーニング
+"""
+
+from librosa.feature import mfcc
+from librosa import load
+import numpy as np
+from sklearn.svm import SVC
+from sklearn.utils import resample
+from sklearn.preprocessing import StandardScaler
+import pickle
+import os
+
+
+def dircount(path):
+    dirlist = []
+    for dir in os.listdir(path):
+        if os.path.isdir(os.path.join(path, dir)):
+            dirlist.append(dir)
+    return len(dirlist)
+
+
+
+def create_ceps(fn):
+    y, sr = load(fn)
+    ceps = mfcc(y, sr)
+    ceps = ceps.T
+    np.save(fn + ".ceps.npy", ceps)
+
+
+def read_ceps(n_people):
+    X = np.zeros(20)
+    y = np.array([[0]])
+
+    grouppath = "./Dropbox/group/"
+    ngroup = dircount(grouppath)
+
+    for i in range(int(n_people)):
+        dirname = os.path.join(grouppath, "group{}/speaker{}/".format(ngroup - 1, i))
+        fn = os.path.join(dirname, "speaker{}.wav.ceps.npy".format(i))
+        ceps = np.load(fn)
+        X = np.vstack((X, ceps))
+        t = i * np.ones((ceps.shape[0], 1), dtype="int8")
+        y = np.vstack((y, t))
+    return np.array(X), np.array(y)
+
+
+def main():
+    n_people = 3
+
+    grouppath = "./Dropbox/group/"
+    ngroup = dircount(grouppath)
+
+    for i in range(n_people):
+        dirname = os.path.join(grouppath, "group{}/speaker{}/".format(ngroup - 1, i))
+        fname = os.path.join(dirname, "speaker{}.wav".format(i))
+        create_ceps(fname)
+    x, y = read_ceps(n_people)
+
+    x = x[1:, :]
+    y = y[1:, :]
+    y = y.reshape(-1, )
+
+    x, y = resample(x, y, n_samples=len(y))
+    sc = StandardScaler()
+    sc.fit(x)
+    x = sc.transform(x)
+    svc = SVC(kernel="rbf", random_state=0, gamma=0.2, C=1.0)
+    svc.fit(x, y)
+
+    pickle.dump(svc, open(os.path.join("./Dropbox/group/group{}".format(ngroup-1), "model.sav"), "wb"))
+    pickle.dump(sc, open(os.path.join("./Dropbox/group/group{}".format(ngroup-1), "sc.sav"), "wb"))
+    """
+    svc.fit(x[200:,:],y[200:])
+    print(svc.score(x[:200,:],y[:200]))
+    prediction = svc.predict(x[:200,:]) 
+    """
+
+
+if __name__ == '__main__':
+    main()

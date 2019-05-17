@@ -6,13 +6,15 @@ from sklearn.preprocessing import StandardScaler
 from scipy.stats import mode
 import sys
 import scipy.io.wavfile as wf
+import os
 
 class speaker_recognition:
-    def __init__(self, n_people):
+    def __init__(self, n_people, grouppath):
         self.n_people = n_people
+        self.grouppath = grouppath
         self.sc = StandardScaler()
-        self.svc = pickle.load(open("./group/model.sav","rb"))
-        self.sc = pickle.load(open("./group/sc.sav","rb"))
+        self.svc = pickle.load(open(os.path.join(grouppath, "model.sav"), "rb"))
+        self.sc = pickle.load(open(os.path.join(grouppath, "sc.sav"), "rb"))
 
     def create_ceps(self,fn):
         y,sr = load(fn)
@@ -30,7 +32,7 @@ class speaker_recognition:
     def transform(self):
         index = np.zeros(self.n_people)
         for i in range(self.n_people):
-            fn = "./group/output_%d.wav"%i
+            fn = os.path.join(self.grouppath, "target/ilrma_{}.wav".format(i))
             ceps = self.create_ceps(fn)
             index[i] = self.predict(ceps)
         return index
