@@ -18,7 +18,7 @@ def main():
     fs, data = cis.wavread(os.path.join(dirname, "input.wav"))
     x = np.array([data[:, 0], data[:, 1], data[:, 2]], dtype=np.float32)
 
-    y = AuxIVA(x, fs, 2, 100).ilrma()
+    y = AuxIVA(x, sample_freq=fs, beta=0.3).auxiva()
 
     cis.wavwrite(os.path.join(dirname, "auxiva_0.wav"), fs, y[0])
     cis.wavwrite(os.path.join(dirname, "auxiva_1.wav"), fs, y[1])
