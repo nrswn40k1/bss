@@ -14,11 +14,16 @@ def main():
     grouppath = "./Dropbox/group"
     ngroup = dircount(grouppath)
     dirname = os.path.join(grouppath, "group{}/target".format(ngroup-1))
-
+    """
     fs, data = cis.wavread(os.path.join(dirname, "input.wav"))
     x = np.array([data[:, 0], data[:, 1], data[:, 2]], dtype=np.float32)
+    """
 
-    y = AuxIVA(x, sample_freq=fs, beta=0.3).auxiva()
+    rate0, data0 = wf.read('./samples/samples/group/output.wav')
+
+    data0 = data0.astype(float).T
+
+    y = AuxIVA(data0, sample_freq=rate0, beta=0.3).auxiva()
 
     y = [(y_i * 32767 / max(np.absolute(y_i))).astype(np.int16) for y_i in np.asarray(y)]
 
