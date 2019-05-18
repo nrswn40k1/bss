@@ -7,7 +7,7 @@ import numpy as np
 
 from AuxIVA import AuxIVA
 from main_preparation import dircount
-import cis
+import scipy.io.wavfile as wf
 
 
 def main():
@@ -20,9 +20,17 @@ def main():
 
     y = AuxIVA(x, sample_freq=fs, beta=0.3).auxiva()
 
+    y = [(y_i * 32767 / max(np.absolute(y_i))).astype(np.int16) for y_i in np.asarray(y)]
+
+    wf.write(os.path.join(dirname, "auxiva_0.wav"), rate0, y[0])
+    wf.write(os.path.join(dirname, "auxiva_1.wav"), rate0, y[1])
+    wf.write(os.path.join(dirname, "auxiva_2.wav"), rate0, y[2])
+
+    """
     cis.wavwrite(os.path.join(dirname, "auxiva_0.wav"), fs, y[0])
     cis.wavwrite(os.path.join(dirname, "auxiva_1.wav"), fs, y[1])
     cis.wavwrite(os.path.join(dirname, "auxiva_2.wav"), fs, y[2])
+    """
 
 
 if __name__ == "__main__":
