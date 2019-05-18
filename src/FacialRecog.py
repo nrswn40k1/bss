@@ -73,7 +73,7 @@ class FacialRecog:
         faces = face_cascade.detectMultiScale(src_gray)
         faces = sorted(faces, key=lambda x: x[0], reverse=True)
 
-        return faces[index]
+        return faces[index] if index < len(faces) else faces[0]
 
     def __spotlight(self, src, box):
 

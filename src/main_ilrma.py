@@ -18,7 +18,7 @@ def main():
     fs, data = cis.wavread(os.path.join(dirname, "input.wav"))
     x = np.array([data[:, 0], data[:, 1], data[:, 2]], dtype=np.float32)
 
-    y = ILRMA(x, fs, 2, 100).ilrma()
+    y = ILRMA(x, fs, 2, 200).ilrma()
 
     cis.wavwrite(os.path.join(dirname, "ilrma_0.wav"), fs, y[0])
     cis.wavwrite(os.path.join(dirname, "ilrma_1.wav"), fs, y[1])

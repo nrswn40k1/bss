@@ -25,7 +25,7 @@ def main():
     SR = speaker_recognition(n_people, os.path.join(grouppath, "group{}".format(ngroup-1)))
     index = SR.transform()
 
-    fname = os.path.join(grouppath, "group{}/target/ilrma_{}.wav".format(ngroup - 1, int(index[0])))
+    fname = os.path.join(grouppath, "group{}/target/aux_{}.wav".format(ngroup - 1, int(index[0])))
 
     afps, data = cis.wavread(fname)
     x = np.array(data)
