@@ -113,5 +113,5 @@ if __name__ == "__main__":
     sepvoice = np.array([data1, data2, data3], dtype=np.float32)
     rawvoice = np.array(data4, dtype=np.float32)
 
-    recog = FacialRecog("samples/WIN_20190515_18_14_38_Pro.mp4", rawvoice[:,0], sepvoice, rate1, "samples/twitter")
-    recog.set_audio()
+    recog = FacialRecog("samples/WIN_20190515_18_14_38_Pro.mp4", rawvoice[:,0], sepvoice, rate1, "samples/aaa")
+    recog.main()

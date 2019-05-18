@@ -37,8 +37,6 @@ def main():
     fname = os.path.join(grouppath, "group{}/target/input.wav".format(ngroup - 1))
     _, data = cis.wavread(fname)
 
-    print(x)
-
     sepvoice = x
     rawvoice = np.array(data, dtype=np.float32)
 
