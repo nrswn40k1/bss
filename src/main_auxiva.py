@@ -19,7 +19,7 @@ def main():
     x = np.array([data[:, 0], data[:, 1], data[:, 2]], dtype=np.float32)
     """
 
-    rate0, data0 = wf.read('./samples/samples/group/output.wav')
+    rate0, data0 = wf.read(os.path.join(dirname, "input.wav"))
 
     data0 = data0.astype(float).T
 
