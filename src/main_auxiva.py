@@ -27,6 +27,8 @@ def main():
 
     y = [(y_i * 32767 / max(np.absolute(y_i))).astype(np.int16) for y_i in np.asarray(y)]
 
+    y = y*1.4
+    
     wf.write(os.path.join(dirname, "auxiva_0.wav"), rate0, y[0])
     wf.write(os.path.join(dirname, "auxiva_1.wav"), rate0, y[1])
     wf.write(os.path.join(dirname, "auxiva_2.wav"), rate0, y[2])
