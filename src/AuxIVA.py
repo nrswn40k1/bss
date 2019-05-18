@@ -68,7 +68,6 @@ class AuxIVA:
                     W[f,k,:] = np.conjugate(w_k)
                 Y_k[:,f,:] = np.dot(W[f,:,:],X[:,f,:])
             self.Scaling(W,Y_k,n_timesegment,nchannel,n_bin)
-            print(i)
         return W
 
     def Y_L2norm(self,W,X,n_bin,n_timesegment,nchannel):
