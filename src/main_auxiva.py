@@ -25,10 +25,9 @@ def main():
 
     y = AuxIVA(data0, sample_freq=rate0, beta=0.3).auxiva()
 
-    y = [(y_i * 32767 / max(np.absolute(y_i))).astype(np.int16) for y_i in np.asarray(y)]
+    y = [(y_i * 32767 * 1.3/ max(np.absolute(y_i))).astype(np.int16) for y_i in np.asarray(y)]
 
-    y = y*1.4
-    
+
     wf.write(os.path.join(dirname, "auxiva_0.wav"), rate0, y[0])
     wf.write(os.path.join(dirname, "auxiva_1.wav"), rate0, y[1])
     wf.write(os.path.join(dirname, "auxiva_2.wav"), rate0, y[2])
