@@ -25,8 +25,7 @@ def read_ceps(n_people):
 
 if __name__ == "__main__":
     #人数 を入れてください
-    print("人数を入力してください: ")
-    n_people = input()
+    n_people = 3
     n_people = int(n_people)
     for i in range(n_people):
         create_ceps("./group/%d.wav"%i)
@@ -44,6 +43,8 @@ if __name__ == "__main__":
     svc.fit(x,y)
     
     pickle.dump(svc,open("./group/model.sav","wb"))
+    pickle.dump(sc,open("./group/sc.sav","wb"))
+
     """
     svc.fit(x[200:,:],y[200:])
     print(svc.score(x[:200,:],y[:200]))
