@@ -135,7 +135,7 @@ cis.wavwrite('./samples/music3_r.wav', fs, y[2])
 ```
 
 ##### Reference
-- 補助関数法に よ る最適化アルゴリズ厶 とその音響信号処理への応用
+- 補助関数法による最適化アルゴリズ厶 とその音響信号処理への応用
 
 #### ILRMA
 -------------------------------
@@ -197,5 +197,5 @@ MFCC is used to recognize speaker
 ## Contributing 
 Contributing to this project is always welcome. 
 
-##License
+## License
 This project is licensed under the MIT License.
