@@ -3,7 +3,7 @@ This repository includes two different types of FDICA, IVA, AuxIVA, ILRMA as wel
 ## 工学博覧会2019 : 音声処理班音源分離チーム
 
 ## Demo
-...not yet...
+You can watch the demonstration from [HERE](https://www.youtube.com/watch?v=WppIe8_5e6k)
 
 ### Blind Source Separation
 #### FDICA(version1, version2)
